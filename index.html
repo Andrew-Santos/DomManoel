@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Chá de Fralda</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        main {
+            max-width: 500px;
+            width: 100%;
+            margin: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+
+        form {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            margin-left: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        .remove {
+            background: #ff4d4d;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            cursor: pointer;
+        }
+
+        .remove:hover {
+            background: #e63939;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lista de Chá de Fralda</h1>
+    </header>
+    <main>
+        <form id="guestForm">
+            <input type="text" id="guestName" placeholder="Adicionar nome..." required />
+            <button type="submit">Adicionar</button>
+        </form>
+        <ul id="guestList">
+            <!-- Lista de convidados -->
+        </ul>
+    </main>
+
+    <script>
+        const guestForm = document.getElementById('guestForm');
+        const guestNameInput = document.getElementById('guestName');
+        const guestList = document.getElementById('guestList');
+
+        guestForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const guestName = guestNameInput.value.trim();
+
+            if (guestName) {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    ${guestName}
+                    <button class="remove">Remover</button>
+                `;
+
+                listItem.querySelector('.remove').addEventListener('click', () => {
+                    guestList.removeChild(listItem);
+                });
+
+                guestList.appendChild(listItem);
+                guestNameInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
