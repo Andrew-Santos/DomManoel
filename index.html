@@ -24,7 +24,7 @@
         }
 
         main {
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
             margin: 2rem;
             background: white;
@@ -35,10 +35,11 @@
 
         form {
             display: flex;
+            gap: 0.5rem;
             margin-bottom: 1rem;
         }
 
-        input {
+        input, select {
             flex: 1;
             padding: 0.5rem;
             font-size: 1rem;
@@ -49,7 +50,6 @@
         button {
             padding: 0.5rem 1rem;
             font-size: 1rem;
-            margin-left: 0.5rem;
             border: none;
             border-radius: 4px;
             background-color: #4CAF50;
@@ -61,34 +61,50 @@
             background-color: #45a049;
         }
 
-        ul {
-            list-style: none;
-            padding: 0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
         }
 
-        li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        th, td {
+            border: 1px solid #ddd;
+            text-align: left;
             padding: 0.5rem;
-            border-bottom: 1px solid #ddd;
         }
 
-        li:last-child {
-            border-bottom: none;
+        th {
+            background-color: #f2f2f2;
         }
 
-        .remove {
-            background: #ff4d4d;
+        .edit, .remove {
+            padding: 0.3rem 0.6rem;
             border: none;
             border-radius: 4px;
             color: white;
-            padding: 0.3rem 0.6rem;
             cursor: pointer;
         }
 
+        .edit {
+            background-color: #ffa500;
+        }
+
+        .edit:hover {
+            background-color: #e69500;
+        }
+
+        .remove {
+            background-color: #ff4d4d;
+        }
+
         .remove:hover {
-            background: #e63939;
+            background-color: #e63939;
+        }
+
+        .count {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -98,38 +114,97 @@
     </header>
     <main>
         <form id="guestForm">
-            <input type="text" id="guestName" placeholder="Adicionar nome..." required />
+            <input type="text" id="guestName" placeholder="Nome do convidado" required />
+            <select id="diaperSize" required>
+                <option value="" disabled selected>Escolha o tamanho da fralda</option>
+                <option value="P">P</option>
+                <option value="M">M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+            </select>
             <button type="submit">Adicionar</button>
         </form>
-        <ul id="guestList">
-            <!-- Lista de convidados -->
-        </ul>
+        <table id="guestTable">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Tamanho da Fralda</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Linhas serão adicionadas aqui -->
+            </tbody>
+        </table>
+        <div class="count">
+            Total de convidados: <span id="guestCount">0</span>
+        </div>
     </main>
 
     <script>
         const guestForm = document.getElementById('guestForm');
         const guestNameInput = document.getElementById('guestName');
-        const guestList = document.getElementById('guestList');
+        const diaperSizeInput = document.getElementById('diaperSize');
+        const guestTable = document.getElementById('guestTable').querySelector('tbody');
+        const guestCount = document.getElementById('guestCount');
+
+        let guests = [];
+
+        function updateGuestCount() {
+            guestCount.textContent = guests.length;
+        }
 
         guestForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const guestName = guestNameInput.value.trim();
+            const diaperSize = diaperSizeInput.value;
 
-            if (guestName) {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `
-                    ${guestName}
-                    <button class="remove">Remover</button>
-                `;
-
-                listItem.querySelector('.remove').addEventListener('click', () => {
-                    guestList.removeChild(listItem);
-                });
-
-                guestList.appendChild(listItem);
+            if (guestName && diaperSize) {
+                const guest = { name: guestName, size: diaperSize };
+                guests.push(guest);
+                renderGuestList();
                 guestNameInput.value = '';
+                diaperSizeInput.value = '';
+                updateGuestCount();
             }
         });
+
+        function renderGuestList() {
+            guestTable.innerHTML = '';
+            guests.forEach((guest, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="text" value="${guest.name}" class="edit-name" /></td>
+                    <td>
+                        <select class="edit-size">
+                            <option value="P" ${guest.size === 'P' ? 'selected' : ''}>P</option>
+                            <option value="M" ${guest.size === 'M' ? 'selected' : ''}>M</option>
+                            <option value="G" ${guest.size === 'G' ? 'selected' : ''}>G</option>
+                            <option value="GG" ${guest.size === 'GG' ? 'selected' : ''}>GG</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="remove">Remover</button>
+                    </td>
+                `;
+
+                row.querySelector('.remove').addEventListener('click', () => {
+                    guests.splice(index, 1);
+                    renderGuestList();
+                    updateGuestCount();
+                });
+
+                row.querySelector('.edit-name').addEventListener('input', (e) => {
+                    guests[index].name = e.target.value;
+                });
+
+                row.querySelector('.edit-size').addEventListener('change', (e) => {
+                    guests[index].size = e.target.value;
+                });
+
+                guestTable.appendChild(row);
+            });
+        }
     </script>
 </body>
 </html>
