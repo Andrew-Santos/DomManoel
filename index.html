@@ -106,6 +106,12 @@
             margin-top: 1rem;
             text-align: center;
         }
+
+        .diaper-count {
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -139,6 +145,9 @@
         <div class="count">
             Total de convidados: <span id="guestCount">0</span>
         </div>
+        <div class="diaper-count" id="diaperCount">
+            Contagem de fraldas: P(0), M(0), G(0), GG(0)
+        </div>
     </main>
 
     <script>
@@ -147,6 +156,7 @@
         const diaperSizeInput = document.getElementById('diaperSize');
         const guestTable = document.getElementById('guestTable').querySelector('tbody');
         const guestCount = document.getElementById('guestCount');
+        const diaperCount = document.getElementById('diaperCount');
 
         let guests = [];
 
@@ -154,18 +164,27 @@
             guestCount.textContent = guests.length;
         }
 
+        function updateDiaperCount() {
+            const count = { P: 0, M: 0, G: 0, GG: 0 };
+            guests.forEach(guest => {
+                count[guest.size]++;
+            });
+            diaperCount.textContent = `Contagem de fraldas: P(${count.P}), M(${count.M}), G(${count.G}), GG(${count.GG})`;
+        }
+
         guestForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const guestName = guestNameInput.value.trim();
+            const guestName = guestNameInput.value.trim().toUpperCase();
             const diaperSize = diaperSizeInput.value;
 
             if (guestName && diaperSize) {
-                const guest = { name: guestName, size: diaperSize };
+                const guest = { name: guestName, size: diaperSize, editing: false };
                 guests.push(guest);
                 renderGuestList();
                 guestNameInput.value = '';
                 diaperSizeInput.value = '';
                 updateGuestCount();
+                updateDiaperCount();
             }
         });
 
@@ -173,33 +192,52 @@
             guestTable.innerHTML = '';
             guests.forEach((guest, index) => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><input type="text" value="${guest.name}" class="edit-name" /></td>
-                    <td>
-                        <select class="edit-size">
-                            <option value="P" ${guest.size === 'P' ? 'selected' : ''}>P</option>
-                            <option value="M" ${guest.size === 'M' ? 'selected' : ''}>M</option>
-                            <option value="G" ${guest.size === 'G' ? 'selected' : ''}>G</option>
-                            <option value="GG" ${guest.size === 'GG' ? 'selected' : ''}>GG</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="remove">Remover</button>
-                    </td>
-                `;
+
+                if (guest.editing) {
+                    row.innerHTML = `
+                        <td><input type="text" value="${guest.name}" class="edit-name" /></td>
+                        <td>
+                            <select class="edit-size">
+                                <option value="P" ${guest.size === 'P' ? 'selected' : ''}>P</option>
+                                <option value="M" ${guest.size === 'M' ? 'selected' : ''}>M</option>
+                                <option value="G" ${guest.size === 'G' ? 'selected' : ''}>G</option>
+                                <option value="GG" ${guest.size === 'GG' ? 'selected' : ''}>GG</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="save">Salvar</button>
+                            <button class="remove">Remover</button>
+                        </td>
+                    `;
+
+                    row.querySelector('.save').addEventListener('click', () => {
+                        guest.name = row.querySelector('.edit-name').value.trim().toUpperCase();
+                        guest.size = row.querySelector('.edit-size').value;
+                        guest.editing = false;
+                        renderGuestList();
+                        updateDiaperCount();
+                    });
+                } else {
+                    row.innerHTML = `
+                        <td>${guest.name}</td>
+                        <td>${guest.size}</td>
+                        <td>
+                            <button class="edit">Editar</button>
+                            <button class="remove">Remover</button>
+                        </td>
+                    `;
+
+                    row.querySelector('.edit').addEventListener('click', () => {
+                        guest.editing = true;
+                        renderGuestList();
+                    });
+                }
 
                 row.querySelector('.remove').addEventListener('click', () => {
                     guests.splice(index, 1);
                     renderGuestList();
                     updateGuestCount();
-                });
-
-                row.querySelector('.edit-name').addEventListener('input', (e) => {
-                    guests[index].name = e.target.value;
-                });
-
-                row.querySelector('.edit-size').addEventListener('change', (e) => {
-                    guests[index].size = e.target.value;
+                    updateDiaperCount();
                 });
 
                 guestTable.appendChild(row);
