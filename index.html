@@ -128,6 +128,7 @@
                 <option value="G">G</option>
                 <option value="GG">GG</option>
             </select>
+            <input type="number" id="guestQuantity" placeholder="Quantidade" min="1" value="1" required />
             <button type="submit">Adicionar</button>
         </form>
         <table id="guestTable">
@@ -135,6 +136,7 @@
                 <tr>
                     <th>Nome</th>
                     <th>Tamanho da Fralda</th>
+                    <th>Quantidade</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -154,6 +156,7 @@
         const guestForm = document.getElementById('guestForm');
         const guestNameInput = document.getElementById('guestName');
         const diaperSizeInput = document.getElementById('diaperSize');
+        const guestQuantityInput = document.getElementById('guestQuantity');
         const guestTable = document.getElementById('guestTable').querySelector('tbody');
         const guestCount = document.getElementById('guestCount');
         const diaperCount = document.getElementById('diaperCount');
@@ -161,13 +164,14 @@
         let guests = [];
 
         function updateGuestCount() {
-            guestCount.textContent = guests.length;
+            const totalGuests = guests.reduce((acc, guest) => acc + guest.quantity, 0);
+            guestCount.textContent = totalGuests;
         }
 
         function updateDiaperCount() {
             const count = { P: 0, M: 0, G: 0, GG: 0 };
             guests.forEach(guest => {
-                count[guest.size]++;
+                count[guest.size] += guest.quantity;
             });
             diaperCount.textContent = `Contagem de fraldas: P(${count.P}), M(${count.M}), G(${count.G}), GG(${count.GG})`;
         }
@@ -176,13 +180,15 @@
             e.preventDefault();
             const guestName = guestNameInput.value.trim().toUpperCase();
             const diaperSize = diaperSizeInput.value;
+            const guestQuantity = parseInt(guestQuantityInput.value, 10);
 
-            if (guestName && diaperSize) {
-                const guest = { name: guestName, size: diaperSize, editing: false };
+            if (guestName && diaperSize && guestQuantity > 0) {
+                const guest = { name: guestName, size: diaperSize, quantity: guestQuantity, editing: false };
                 guests.push(guest);
                 renderGuestList();
                 guestNameInput.value = '';
                 diaperSizeInput.value = '';
+                guestQuantityInput.value = '1';
                 updateGuestCount();
                 updateDiaperCount();
             }
@@ -204,6 +210,7 @@
                                 <option value="GG" ${guest.size === 'GG' ? 'selected' : ''}>GG</option>
                             </select>
                         </td>
+                        <td><input type="number" value="${guest.quantity}" class="edit-quantity" min="1" /></td>
                         <td>
                             <button class="save">Salvar</button>
                             <button class="remove">Remover</button>
@@ -213,14 +220,17 @@
                     row.querySelector('.save').addEventListener('click', () => {
                         guest.name = row.querySelector('.edit-name').value.trim().toUpperCase();
                         guest.size = row.querySelector('.edit-size').value;
+                        guest.quantity = parseInt(row.querySelector('.edit-quantity').value, 10);
                         guest.editing = false;
                         renderGuestList();
+                        updateGuestCount();
                         updateDiaperCount();
                     });
                 } else {
                     row.innerHTML = `
                         <td>${guest.name}</td>
                         <td>${guest.size}</td>
+                        <td>${guest.quantity}</td>
                         <td>
                             <button class="edit">Editar</button>
                             <button class="remove">Remover</button>
